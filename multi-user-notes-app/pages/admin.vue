@@ -99,7 +99,7 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    users.value = await $fetch<User[]>('/api/users?user_type=regular')
+    users.value = await authStore.fetchNormalUsers()
   } catch (error) {
     console.error('Failed to fetch users:', error)
   } finally {

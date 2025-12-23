@@ -1,3 +1,11 @@
+## Project Setup: 
+node 22.14.0
+pnpm 10.15.0
+
+cd multi-user-notes-app
+pnpm install
+pnpm run dev
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
