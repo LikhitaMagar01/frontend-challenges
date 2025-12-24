@@ -29,6 +29,17 @@
           >
             Login
           </v-btn>
+          <v-divider class="my-4"></v-divider>
+          <v-btn
+            color="red"
+            variant="outlined"
+            block
+            prepend-icon="mdi-google"
+            :loading="googleLoading"
+            @click="loginWithGoogle"
+          >
+            Login with Google
+          </v-btn>
         </v-form>
         <v-alert
           v-if="error"
@@ -43,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
@@ -53,7 +64,38 @@ const form = ref({
 })
 
 const loading = ref(false)
+const googleLoading = ref(false)
 const error = ref('')
+
+onMounted(() => {
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr)
+      if (user.user_type === 'admin') {
+        navigateTo('/admin')
+      } else {
+        navigateTo('/user/' + user._id)
+      }
+      return
+    } catch (error) {
+      // Invalid user data, clear it
+      localStorage.removeItem('user')
+    }
+  }
+
+  window.addEventListener('message', (event) => {
+    if (event.data.type === 'google-login-success') {
+      authStore.setCurrentUser(event.data.user)
+      localStorage.setItem('user', JSON.stringify(event.data.user))
+      if (event.data.user.user_type === 'admin') {
+        navigateTo('/admin')
+      } else {
+        navigateTo('/user/' + event.data.user._id)
+      }
+    }
+  })
+})
 
 const login = async () => {
   loading.value = true
@@ -74,6 +116,29 @@ const login = async () => {
     error.value = err.data?.statusMessage || 'Login failed'
   } finally {
     loading.value = false
+  }
+}
+
+const loginWithGoogle = async () => {
+  googleLoading.value = true
+  error.value = ''
+  try {
+    const config = useRuntimeConfig()
+    const clientId = config.public.googleClientId
+    const siteUrl = config.public.siteUrl
+    const redirectUri = `${siteUrl}/auth/google`
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('openid email profile')}&response_type=code&prompt=consent&access_type=offline`
+    
+    // Open in popup
+    const popup = window.open(authUrl, '_blank', 'width=500,height=600,scrollbars=yes,resizable=yes')
+    
+    if (!popup) {
+      throw new Error('Popup blocked. Please allow popups for this site.')
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Failed to initiate Google login'
+    googleLoading.value = false
   }
 }
 </script>

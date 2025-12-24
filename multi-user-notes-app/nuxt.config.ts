@@ -20,4 +20,10 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
   ],
+  runtimeConfig: {
+    public: {
+      googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    }
+  }
 })

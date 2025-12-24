@@ -172,6 +172,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
+
 interface Note {
   _id: string
   title: string
