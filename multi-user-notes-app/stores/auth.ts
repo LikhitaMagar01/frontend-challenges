@@ -49,6 +49,17 @@ export const useAuthStore = defineStore('auth', () => {
     return $fetch<User[]>('/api/users?user_type=regular')
   }
 
+  const fetchAllUsers = (): Promise<User[]> => {
+    return $fetch<User[]>('/api/users')
+  }
+
+  const updateUserType = (userId: string, userType: 'admin' | 'regular'): Promise<User> => {
+    return $fetch<User>(`/api/users/${userId}`, {
+      method: 'PUT',
+      body: { user_type: userType }
+    })
+  }
+  
   return {
     currentUser,
     impersonatingUser,
@@ -58,6 +69,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     isImpersonating,
     fetchUserById,
-    fetchNormalUsers
+    fetchNormalUsers,
+    fetchAllUsers,
+    updateUserType
   }
 })
