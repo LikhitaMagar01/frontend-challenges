@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref<User | null>(null)
   const impersonatingUser = ref<User | null>(null)
 
-  const setCurrentUser = (user: User): void => {
+  const setCurrentUser = (user: User | null): void => {
     currentUser.value = user
   }
 

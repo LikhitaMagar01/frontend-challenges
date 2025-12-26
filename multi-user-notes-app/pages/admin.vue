@@ -2,7 +2,16 @@
   <v-container class="admin-container">
     <v-row>
       <v-col cols="12">
-        <h1 class="text-h3 font-weight-bold mb-8">Admin Dashboard</h1>
+        <div class="header-section">
+          <h1 class="text-h3 font-weight-bold mb-8">Admin Dashboard</h1>
+          <v-btn
+            color="error"
+            variant="outlined"
+            @click="logout"
+          >
+            Logout
+          </v-btn>
+        </div>
       </v-col>
     </v-row>
 
@@ -119,6 +128,13 @@ const onUserSelected = (userId: string | null): void => {
 const impersonateUser = (user: User): void => {
   authStore.setImpersonatingUser(user)
   router.push(`/user/${user._id}`)
+}
+
+const logout = (): void => {
+  authStore.setCurrentUser(null)
+  authStore.setImpersonatingUser(null)
+  localStorage.removeItem('user')
+  router.push('/login')
 }
 </script>
 

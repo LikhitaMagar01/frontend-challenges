@@ -22,6 +22,15 @@
               Back to Admin
             </v-btn>
           </div>
+          <div v-else class="user-controls">
+            <v-btn
+              color="error"
+              variant="outlined"
+              @click="logout"
+            >
+              Logout
+            </v-btn>
+          </div>
         </div>
       </v-col>
     </v-row>
@@ -295,6 +304,13 @@ const deleteNote = async (id: string): Promise<void> => {
 const backToAdmin = (): void => {
   authStore.setImpersonatingUser(null)
   router.push('/admin')
+}
+
+const logout = (): void => {
+  authStore.setCurrentUser(null)
+  authStore.setImpersonatingUser(null)
+  localStorage.removeItem('user')
+  router.push('/login')
 }
 </script>
 
