@@ -3,7 +3,8 @@ import { User } from '~/server/models/User'
 
 const clientId = process.env.GOOGLE_CLIENT_ID!
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET!
-const redirectUri = `${process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/google`
+const baseUrl = (process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
+const redirectUri = `${baseUrl}/auth/google`
 
 const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri)
 
