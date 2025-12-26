@@ -1,183 +1,291 @@
 <template>
-  <v-container class="notes-container">
-    <v-row class="mb-6">
-      <v-col cols="12">
-        <div class="header-section">
-          <div>
-            <h1 class="text-h3 font-weight-bold">My Notes</h1>
-            <p v-if="currentUserName" class="text-subtitle1 mt-2">
-              {{ currentUserName }}
-            </p>
-          </div>
-          <div v-if="authStore.isImpersonating()" class="admin-controls">
-            <v-chip color="warning" text-color="black" class="mr-2">
-              Impersonating
-            </v-chip>
-            <v-btn
-              color="secondary"
-              variant="outlined"
-              class="ml-2"
-              @click="backToAdmin"
-            >
-              Back to Admin
-            </v-btn>
-          </div>
-          <div v-else class="user-controls">
-            <v-btn
-              color="error"
-              variant="outlined"
-              @click="logout"
-            >
-              Logout
-            </v-btn>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-
-    <v-row>
-      <v-col cols="12">
-        <v-card class="add-note-card" :ripple="false" @click.self="closeNoteForm">
-          <v-card-text>
-            <div v-if="!isFormExpanded">
-              <v-text-field
-                placeholder="Add a note..."
-                variant="outlined"
-                density="comfortable"
-                @focus="expandForm"
-              />
-            </div>
-
-            <div v-else>
-              <v-text-field
-                v-model="formData.title"
-                placeholder="Title"
-                variant="outlined"
-                density="comfortable"
-                class="mb-4"
-                @keydown.escape="closeNoteForm"
-              />
-              <v-textarea
-                v-model="formData.description"
-                placeholder="Description"
-                variant="outlined"
-                density="comfortable"
-                rows="4"
-                class="mb-4"
-                @keydown.escape="closeNoteForm"
-              />
-              <v-row class="mt-2">
-                <v-spacer />
-                <v-col cols="auto">
-                  <v-btn
-                    variant="outlined"
-                    @click="closeNoteForm"
-                  >
-                    Close
-                  </v-btn>
-                </v-col>
-                <v-col cols="auto">
-                  <v-btn
-                    color="primary"
-                    @click="submitNote"
-                  >
-                    Add Note
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <v-row class="mt-8">
-      <v-col cols="12">
-        <v-row v-if="isLoadingNotes" class="justify-center">
-          <client-only>
-            <v-progress-circular indeterminate size="64" />
-          </client-only>
-        </v-row>
-
-        <div v-else-if="notes.length === 0">
-          <client-only>
-            <v-empty-state
-              headline="No notes yet"
-              text="Create one to get started!"
-            />
-          </client-only>
-        </div>
-
-        <v-row v-else>
-          <v-col
-            v-for="note in notes"
-            :key="note._id"
-            cols="12"
-            md="6"
+  <div class="min-h-screen position-relative overflow-hidden">
+    <div class="bg-gradient-primary"></div>
+    <div class="bg-gradient-secondary"></div>
+    
+    <v-container class="max-width-1400 position-relative" style="z-index: 1;">
+      <v-row class="mb-8">
+        <v-col cols="12">
+          <v-card
+            variant="elevated"
+            class="pa-6 pa-md-8 rounded-xl elevation-4 transition-all-300"
+            hover
           >
-            <v-card v-if="!editingNoteId || editingNoteId !== note._id">
-              <v-card-text>
-                <h3 class="text-h6 mb-2">{{ note.title }}</h3>
-                <p class="note-content">{{ note.content }}</p>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer />
-                <v-btn
-                  color="primary"
-                  variant="text"
-                  @click="startEditNote(note)"
-                >
-                  Edit
-                </v-btn>
-                <v-btn
-                  color="error"
-                  variant="text"
-                  @click="deleteNote(note._id)"
-                >
-                  Delete
-                </v-btn>
-              </v-card-actions>
-            </v-card>
+            <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between gap-4">
+              <div>
+                <div class="d-flex align-center gap-3 mb-2">
+                  <v-icon size="32" color="primary">mdi-notebook-outline</v-icon>
+                  <h1 class="text-h3 text-md-h2 font-weight-bold primary--text mb-0">My Notes</h1>
+                </div>
+                <div v-if="currentUserName" class="d-flex align-center mt-3">
+                  <v-avatar size="32" color="primary" class="text-white font-weight-bold mr-4">
+                    {{ currentUserName.charAt(0).toUpperCase() }}
+                  </v-avatar>
+                  <span class="text-body-1 text-medium-emphasis">Welcome back, {{ currentUserName }}!</span>
+                </div>
+              </div>
+              
+              <div class="d-flex align-center gap-2 flex-column flex-md-row">
+                <div v-if="authStore.isImpersonating()" class="d-flex align-center gap-2 mb-2 mb-md-0">
+                  <v-chip color="warning" text-color="black" variant="elevated" class="px-3 mr-2">
+                    <v-icon start>mdi-account-switch</v-icon>
+                    Impersonating
+                  </v-chip>
+                  <v-btn
+                    color="secondary"
+                    variant="flat"
+                    class="px-4"
+                    @click="backToAdmin"
+                  >
+                    <v-icon start>mdi-arrow-left</v-icon>
+                    Back to Admin
+                  </v-btn>
+                </div>
+                <div v-else>
+                  <v-btn
+                    color="error"
+                    variant="flat"
+                    class="px-4"
+                    @click="logout"
+                  >
+                    <v-icon start>mdi-logout</v-icon>
+                    Logout
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
 
-            <v-card v-else class="edit-card">
-              <v-card-text>
+      <!-- Add Note Section -->
+      <v-row class="mb-8">
+        <v-col cols="12" md="8" lg="6" class="mx-auto">
+          <v-card
+            variant="elevated"
+            class="rounded-xl elevation-3 transition-all-300"
+            hover
+            :ripple="false"
+            @click.self="closeNoteForm"
+          >
+            <div class="pa-4 primary lighten-5 border-b-thin">
+              <div class="d-flex align-center gap-2">
+                <v-icon color="primary">mdi-plus-circle-outline</v-icon>
+                <span class="text-h6 font-weight-medium primary--text">Create New Note</span>
+              </div>
+            </div>
+            
+            <v-card-text class="pa-6">
+              <div v-if="!isFormExpanded" class="transition-all-300">
+                <div
+                  class="d-flex align-center gap-3 pa-4 rounded-lg cursor-pointer transition-all-300"
+                  style="border: 1px solid rgba(var(--v-theme-surface-variant), 0.2);"
+                  @click="expandForm"
+                >
+                  <v-icon color="grey" size="24">mdi-pencil-plus-outline</v-icon>
+                  <span class="text-body-1 text-medium-emphasis">Click here to add a new note...</span>
+                  <v-spacer></v-spacer>
+                  <v-icon color="primary">mdi-chevron-down</v-icon>
+                </div>
+              </div>
+
+              <div v-else class="transition-all-300">
                 <v-text-field
-                  v-model="editFormData.title"
-                  placeholder="Title"
+                  v-model="formData.title"
+                  placeholder="What's your note title?"
                   variant="outlined"
                   density="comfortable"
                   class="mb-4"
+                  prepend-inner-icon="mdi-format-title"
+                  @keydown.escape="closeNoteForm"
                 />
                 <v-textarea
-                  v-model="editFormData.description"
-                  placeholder="Description"
+                  v-model="formData.description"
+                  placeholder="Write your thoughts here..."
                   variant="outlined"
                   density="comfortable"
                   rows="4"
-                  class="mb-4"
+                  class="mb-6"
+                  prepend-inner-icon="mdi-text"
+                  @keydown.escape="closeNoteForm"
                 />
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer />
-                <v-btn
-                  variant="outlined"
-                  @click="cancelEditNote"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  @click="saveEditNote(note._id)"
-                >
-                  Save
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+                <v-row class="mt-2">
+                  <v-spacer />
+                  <v-col cols="auto">
+                    <v-btn
+                      variant="outlined"
+                      class="px-4"
+                      @click="closeNoteForm"
+                    >
+                      <v-icon start>mdi-close</v-icon>
+                      Cancel
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="auto">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      class="px-6"
+                      @click="submitNote"
+                      :loading="isSubmitting"
+                    >
+                      <v-icon start>mdi-content-save</v-icon>
+                      Add Note
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Notes Grid Section -->
+      <v-row v-if="isLoadingNotes" class="justify-center py-12">
+        <v-col cols="12" class="text-center">
+          <v-progress-circular indeterminate size="64" color="primary" class="mb-4"></v-progress-circular>
+          <p class="text-h6 text-medium-emphasis">Loading your notes...</p>
+        </v-col>
+      </v-row>
+
+      <div v-else-if="notes.length === 0" class="py-12 text-center">
+        <v-icon size="80" color="grey lighten-2" class="mb-4 d-block">mdi-notebook-outline</v-icon>
+        <h2 class="text-h4 font-weight-medium text-medium-emphasis mb-2">No notes yet</h2>
+        <p class="text-body-1 text-medium-emphasis mb-6">Start capturing your thoughts and ideas!</p>
+        <v-btn
+          color="primary"
+          variant="flat"
+          size="large"
+          class="px-8"
+          @click="expandForm"
+        >
+          <v-icon start>mdi-plus</v-icon>
+          Create Your First Note
+        </v-btn>
+      </div>
+
+      <v-row v-else class="transition-all-300">
+        <v-col
+          v-for="note in notes"
+          :key="note._id"
+          cols="12"
+          sm="6"
+          lg="4"
+          class="pa-3"
+        >
+          <!-- View Mode Card -->
+          <v-card
+            v-if="!editingNoteId || editingNoteId !== note._id"
+            variant="elevated"
+            class="h-100 rounded-xl elevation-2 transition-all-300 cursor-pointer position-relative overflow-hidden"
+            hover
+            @click="startEditNote(note)"
+          >
+            <div class="pa-4 pb-2 border-b-thin" style="background: rgba(var(--v-theme-surface-variant), 0.1);">
+              <div class="d-flex align-center justify-space-between">
+                <v-icon color="primary" class="mr-2">mdi-note-text-outline</v-icon>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn icon variant="text" size="small" v-bind="props">
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item @click="startEditNote(note)">
+                      <v-list-item-title>
+                        <v-icon start>mdi-pencil</v-icon>
+                        Edit Note
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="deleteNote(note._id)" class="text-error">
+                      <v-list-item-title>
+                        <v-icon start>mdi-delete</v-icon>
+                        Delete Note
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+            </div>
+
+            <v-card-text class="pa-4 pt-0">
+              <h3 class="text-h6 font-weight-medium mb-3">
+                {{ note.title }}
+              </h3>
+              <p class="text-body-2 text-medium-emphasis">
+                {{ note.content }}
+              </p>
+            </v-card-text>
+
+            <v-card-actions class="pa-4 pt-0">
+              <v-spacer></v-spacer>
+              <v-btn
+                variant="text"
+                color="primary"
+                size="small"
+                class="px-2"
+                @click.stop="startEditNote(note)"
+              >
+                <v-icon size="16" class="mr-1">mdi-pencil</v-icon>
+                Edit
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+
+          <!-- Edit Mode Card -->
+          <v-card v-else variant="outlined" class="h-100 rounded-xl elevation-4 border-primary">
+            <div class="pa-4 pb-2 primary lighten-5 border-b-thin border-primary">
+              <div class="d-flex align-center gap-2">
+                <v-icon color="primary">mdi-pencil-box-outline</v-icon>
+                <span class="text-subtitle-1 font-weight-medium">Editing Note</span>
+              </div>
+            </div>
+
+            <v-card-text class="pa-4">
+              <v-text-field
+                v-model="editFormData.title"
+                placeholder="Note title"
+                variant="outlined"
+                density="comfortable"
+                class="mb-4"
+                prepend-inner-icon="mdi-format-title"
+              />
+              <v-textarea
+                v-model="editFormData.description"
+                placeholder="Note content"
+                variant="outlined"
+                density="comfortable"
+                rows="6"
+                class="mb-4"
+                prepend-inner-icon="mdi-text"
+              />
+            </v-card-text>
+
+            <v-card-actions class="pa-4 pt-0">
+              <v-spacer></v-spacer>
+              <v-btn
+                variant="outlined"
+                class="mr-2"
+                @click="cancelEditNote"
+              >
+                <v-icon start>mdi-close</v-icon>
+                Cancel
+              </v-btn>
+              <v-btn
+                color="primary"
+                variant="flat"
+                @click="saveEditNote(note._id)"
+                :loading="isSaving"
+              >
+                <v-icon start>mdi-content-save</v-icon>
+                Save
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -201,6 +309,8 @@ const { notes } = storeToRefs(notesStore)
 const isFormExpanded = ref(false)
 const editingNoteId = ref<string | null>(null)
 const isLoadingNotes = ref(true)
+const isSubmitting = ref(false)
+const isSaving = ref(false)
 
 const formData = ref({
   title: '',
@@ -247,6 +357,7 @@ const closeNoteForm = (): void => {
 
 const submitNote = async (): Promise<void> => {
   try {
+    isSubmitting.value = true
     const activeUser = authStore.getActiveUser()
     if (!activeUser) {
       console.error('No active user')
@@ -262,6 +373,8 @@ const submitNote = async (): Promise<void> => {
     closeNoteForm()
   } catch (error) {
     console.error('Failed to submit note:', error)
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -280,6 +393,7 @@ const cancelEditNote = (): void => {
 
 const saveEditNote = async (noteId: string): Promise<void> => {
   try {
+    isSaving.value = true
     const { title, description } = editFormData.value
     if (!title.trim() && !description.trim()) {
       return
@@ -290,6 +404,8 @@ const saveEditNote = async (noteId: string): Promise<void> => {
     editFormData.value = { title: '', description: '' }
   } catch (error) {
     console.error('Failed to save note:', error)
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -313,50 +429,3 @@ const logout = (): void => {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.notes-container {
-  max-width: 1000px;
-}
-
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.admin-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.add-note-card {
-  cursor: pointer;
-}
-
-.edit-card {
-  background-color: rgba(33, 150, 243, 0.05);
-}
-
-.note-content {
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.6;
-  margin: 0;
-  color: #666;
-}
-
-@media (max-width: 600px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-controls {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-}
-</style>
