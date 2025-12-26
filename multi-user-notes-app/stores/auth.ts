@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 
-interface User {
+export interface User {
   _id: string
   name: string
-  user_type: 'admin' | 'user'
+  email?: string
+  googleId?: string
+  user_type: 'admin' | 'regular'
 }
 
 interface AuthState {

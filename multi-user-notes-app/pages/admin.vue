@@ -84,11 +84,11 @@
 </template>
 
 <script setup lang="ts">
-interface User {
-  _id: string
-  name: string
-  user_type: 'admin' | 'user'
-}
+definePageMeta({
+  middleware: 'auth'
+})
+
+import type { User } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
