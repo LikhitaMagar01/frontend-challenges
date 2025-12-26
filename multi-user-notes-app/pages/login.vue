@@ -125,7 +125,7 @@ const loginWithGoogle = async () => {
   try {
     const config = useRuntimeConfig()
     const clientId = config.public.googleClientId
-    const siteUrl = config.public.siteUrl
+    const siteUrl = config.public.siteUrl.replace(/\/+$/, '')
     const redirectUri = `${siteUrl}/auth/google`
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('openid email profile')}&response_type=code&prompt=consent&access_type=offline`
