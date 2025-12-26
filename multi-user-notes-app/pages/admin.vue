@@ -15,9 +15,11 @@
               </div>
               <div class="d-flex align-center mt-3">
                 <v-avatar size="32" color="primary" class="text-white font-weight-bold mr-4">
-                  A
+                  {{ authStore.currentUser?.name?.charAt(0).toUpperCase() || 'A' }}
                 </v-avatar>
-                <span class="text-body-1 text-medium-emphasis">Administrative Control Panel</span>
+                <span class="text-body-1 text-medium-emphasis">
+                  Hi, {{ authStore.currentUser?.name || 'Admin' }}
+                </span>
               </div>
             </div>
 
@@ -57,7 +59,7 @@
             </div>
             <v-select
               v-model="selectedUser"
-              :items="users"
+              :items="normalUsers"
               item-title="name"
               item-value="_id"
               label="Choose a user to impersonate"
@@ -105,10 +107,11 @@
                   <th class="text-left font-weight-medium text-primary" scope="col">User</th>
                   <th class="text-left font-weight-medium text-primary" scope="col">Role</th>
                   <th class="text-left font-weight-medium text-primary" scope="col">Actions</th>
+                  <th class="text-left font-weight-medium text-primary" scope="col">Notes</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in users" :key="user._id" class="hover">
+                <tr v-for="user in users.filter(u => u._id !== authStore.currentUser?._id)" :key="user._id" class="hover">
                   <td class="py-4">
                     <div class="d-flex align-center">
                       <v-avatar size="32" color="primary" class="text-white font-weight-bold mr-3">
@@ -128,16 +131,29 @@
                     </v-chip>
                   </td>
                   <td class="py-4">
-                    <v-btn
-                      size="small"
-                      color="primary"
-                      variant="flat"
-                      @click="impersonateUser(user)"
-                    >
-                      <v-icon start size="16">mdi-eye</v-icon>
-                      View Notes
-                    </v-btn>
+                    <div class="d-flex align-center">
+                      <v-switch
+                        :model-value="user.user_type === 'admin'"
+                        color="primary"
+                        density="compact"
+                        @update:model-value="(value) => updateUserType(user._id, value ? 'admin' : 'regular')"
+                        :loading="updatingUsers.has(user._id)"
+                        class="mr-4"
+                      ></v-switch>
+                    </div>
                   </td>
+                <td>
+
+                  <v-btn
+                    size="small"
+                    color="primary"
+                    variant="flat"
+                    @click="impersonateUser(user)"
+                  >
+                    <v-icon start size="16">mdi-eye</v-icon>
+                    View Notes
+                  </v-btn>
+                </td>
                 </tr>
               </tbody>
             </v-table>
@@ -161,10 +177,13 @@ const router = useRouter()
 const users = ref<User[]>([])
 const selectedUser = ref<string | null>(null)
 const isLoading = ref(true)
+const updatingUsers = ref(new Set<string>())
+const normalUsers = ref<User[]>([])
 
 onMounted(async () => {
   try {
-    users.value = await authStore.fetchNormalUsers()
+    users.value = await authStore.fetchAllUsers()
+    normalUsers.value = users.value.filter(user => user.user_type === 'regular')
   } catch (error) {
     console.error('Failed to fetch users:', error)
   } finally {
@@ -184,6 +203,19 @@ const onUserSelected = (userId: string | null): void => {
 const impersonateUser = (user: User): void => {
   authStore.setImpersonatingUser(user)
   router.push(`/user/${user._id}`)
+}
+
+const updateUserType = async (userId: string, newUserType: 'admin' | 'regular'): Promise<void> => {
+  updatingUsers.value.add(userId)
+  
+  const updatedUser = await authStore.updateUserType(userId, newUserType)
+  
+  const userIndex = users.value.findIndex(u => u._id === userId)
+  if (userIndex !== -1) {
+    users.value[userIndex] = updatedUser
+  }
+  
+  updatingUsers.value.delete(userId)
 }
 
 const logout = (): void => {
